@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-
+from .models import Golfer
 def home(request):
     return render(request, "home.html")
 
@@ -24,4 +24,10 @@ def signup(request):
 
 @login_required
 def dashboard(request):
-    return render(request, "dashboard.html")
+    golfers = Golfer.objects.all()                 # all available golfers
+    favorites = request.user.favorite_golfers.all()  # this user’s favorites
+
+    return render(request, 'dashboard.html', {
+        'golfers': golfers,
+        'favorites': favorites
+    })

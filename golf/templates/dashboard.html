@@ -7,6 +7,28 @@
 <body>
     <h2>Welcome, {{ user.username }}!</h2>
     <p>This is your dashboard.</p>
+    <h3>Your Favorite Golfers</h3>
+<ul>
+  {% for golfer in favorites %}
+    <li>{{ golfer.name }} ({{ golfer.country }})</li>
+  {% empty %}
+    <li>No favorites yet</li>
+  {% endfor %}
+</ul>
+
+
+
+
+
+    <h3>All golfers in the database</h3>
+
+    <ul>
+      {% for golfer in golfers %}
+        <li>{{ golfer.name }} ({{ golfer.country }})</li>
+      {% empty %}
+        <li>No favorites yet.</li>
+      {% endfor %}
+    </ul>
 
     <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
