@@ -1,13 +1,39 @@
-<!doctype html>
-<html>
-  <head><meta charset="utf-8"><title>Manage Favorites</title></head>
-  <body>
-    <h2>Pick up to 5 favorite golfers</h2>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Save favorites</button>
-    </form>
-    <p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Favorites</title>
+</head>
+<body>
+  <h2>Manage Your Favorite Golfers</h2>
+  <p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <p>Select up to 5 golfers:</p>
+
+    {% for golfer in golfers %}
+      <div>
+        <label>
+          <input type="checkbox" name="favorites"
+                 value="{{ golfer.id }}"
+                 {% if golfer in current_favorites %}checked{% endif %}>
+          {{ golfer.name }} ({{ golfer.country }})
+        </label>
+      </div>
+    {% empty %}
+      <p>No golfers available.</p>
+    {% endfor %}
+
+    <button type="submit">Save Favorites</button>
+  </form>
+
+  <p><a href="{% url 'dashboard' %}">
