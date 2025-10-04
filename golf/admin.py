@@ -3,11 +3,12 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import Golfer
+from .models import Golfer, Tournament, TournamentEntry
 
 
 # Register Golfer normally
 admin.site.register(Golfer)
-
+#admin.site.register(Tournament)
 
 # Custom form for User to enforce limit
 class UserChangeFormWithFavorites(forms.ModelForm):
@@ -33,3 +34,14 @@ class UserAdmin(BaseUserAdmin):
 # Re-register User with our custom admin
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+
+
+class TournamentEntryInline(admin.TabularInline):
+    model = TournamentEntry
+    extra = 0  # Don't show empty extra rows
+    fields = ('golfer', 'day_1_score', 'day_2_score', 'day_3_score', 'day_4_score')
+
+@admin.register(Tournament)
+class TournamentAdmin(admin.ModelAdmin):
+    inlines = [TournamentEntryInline]

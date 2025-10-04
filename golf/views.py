@@ -87,3 +87,16 @@ def manage_favorites(request):
     })
 
 
+# @login_required
+# def dashboardtest(request):
+#     golfers = Golfer.objects.all()                 # all available golfers
+#     favorites = request.user.favorite_golfers.all()  # this user’s favorites
+
+#     return render(request, 'dashboard.html', {
+#         'golfers': golfers,
+#         'favorites': favorites
+#     })
+
+@login_required
+def testpage(request):
+    return render(request, "test.html")

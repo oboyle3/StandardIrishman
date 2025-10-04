@@ -22,15 +22,7 @@
 
 
 
-    <h3>All golfers in the database</h3>
-
-    <ul>
-      {% for golfer in golfers %}
-        <li>{{ golfer.name }} ({{ golfer.country }})</li>
-      {% empty %}
-        <li>No favorites yet.</li>
-      {% endfor %}
-    </ul>
+    
 
     <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
