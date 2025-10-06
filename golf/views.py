@@ -5,9 +5,14 @@ from django.contrib.auth import login
 #from django.contrib.auth.decorators import login_required
 from .models import Golfer
 from django.contrib import messages
-
+from .models import Task
 from django.contrib.auth.decorators import login_required
 #from .models import Golfer
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+import json
 
 def home(request):
     return render(request, "home.html")
@@ -39,28 +44,28 @@ def dashboard(request):
 
 
 
-@login_required
-def manage_favorites(request):
-    if request.method == "POST":
-        selected_ids = request.POST.getlist("favorites")
+# @login_required
+# def manage_favorites(request):
+#     if request.method == "POST":
+#         selected_ids = request.POST.getlist("favorites")
 
-        if len(selected_ids) > 5:
-            messages.error(request, "You can only select up to 5 favorite golfers.")
-        else:
-            golfers = Golfer.objects.filter(id__in=selected_ids)
-            request.user.favorite_golfers.set(golfers)
-            messages.success(request, "Your favorites were updated!")
+#         if len(selected_ids) > 5:
+#             messages.error(request, "You can only select up to 5 favorite golfers.")
+#         else:
+#             golfers = Golfer.objects.filter(id__in=selected_ids)
+#             request.user.favorite_golfers.set(golfers)
+#             messages.success(request, "Your favorites were updated!")
 
-        return redirect("manage_favorites")
+#         return redirect("manage_favorites")
 
-    # GET → show golfers with current favorites preselected
-    all_golfers = Golfer.objects.all()
-    current_favorites = request.user.favorite_golfers.all()
+#     # GET → show golfers with current favorites preselected
+#     all_golfers = Golfer.objects.all()
+#     current_favorites = request.user.favorite_golfers.all()
 
-    return render(request, "manage_favorites.html", {
-        "golfers": all_golfers,
-        "current_favorites": current_favorites,
-    })
+#     return render(request, "manage_favorites.html", {
+#         "golfers": all_golfers,
+#         "current_favorites": current_favorites,
+#     })
 
 @login_required
 def manage_favorites(request):
@@ -97,6 +102,41 @@ def manage_favorites(request):
 #         'favorites': favorites
 #     })
 
+
+@csrf_exempt
+@require_POST
+def update_task_order(request):
+    data = json.loads(request.body)
+    task_id = data['id']
+    new_order = data['newOrder']
+
+    task = Task.objects.get(id=task_id)
+    task.order = new_order
+    task.save()
+
+    return JsonResponse({'success': True})
+#render the tasks and implement drag and drop using javascript
+
+
+
 @login_required
 def testpage(request):
-    return render(request, "test.html")
+     # Fetch golfers and order them by 'order' field
+    golfers = Golfer.objects.all().order_by('order')
+    return render(request, 'test.html', {
+        'golfers': golfers
+        #'favorites': favorites
+    })
+
+
+def update_golfer_order(request):
+    data = json.loads(request.body)
+    golfer_ids = data['golfer_order']
+
+    # Update the order of golfers
+    for index, golfer_id in enumerate(golfer_ids):
+        golfer = Golfer.objects.get(id=golfer_id)
+        golfer.order = index  # Update golfer's order based on the new index
+        golfer.save()
+
+    return JsonResponse({'success': True})

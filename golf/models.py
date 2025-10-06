@@ -10,13 +10,23 @@ class Golfer(models.Model):
     def __str__(self):
         return f"{self.name} ({self.country})"
 
+# Through model to store the rank of each golfer in the user's favorites
+class UserFavorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    golfer = models.ForeignKey(Golfer, on_delete=models.CASCADE)
+    position = models.PositiveIntegerField()
 
-# Add a ManyToMany field dynamically to User
-User.add_to_class(
-    'favorite_golfers',
-    models.ManyToManyField(Golfer, blank=True, related_name='fans')
-)
+    class Meta:
+        unique_together = ('user', 'position')  # Ensures unique positions for each user
 
+    def __str__(self):
+        return f"{self.user.username}'s favorite {self.position} - {self.golfer.name}"
+
+# Add a Many-to-Many relationship with a rank position using the through model
+# User.add_to_class(
+#     'favorite_golfers',
+#     models.ManyToManyField(Golfer, through=UserFavorite, related_name='fans')
+# )
 
 
 
@@ -44,3 +54,12 @@ class TournamentEntry(models.Model):
 
     def __str__(self):
         return f"{self.golfer.name} in {self.tournament.name}"
+    
+
+class Task(models.Model):
+    name = models.CharField(max_length=255)
+    order = models.PositiveBigIntegerField()
+    #order feild to order of the task
+
+    def __str__(self):
+        return self.name

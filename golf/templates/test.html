@@ -1,3 +1,119 @@
-<h1> test html page</h1>
-<a href="{% url 'login' %}">fake link</a> |
+<!-- task_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task List</title>
+    <style>
+        .task {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            cursor: move;
+        }
+        .task.dragging {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tasks</h1>
+    <p><a href="{% url 'dashboard' %}">dashboard</a></p>
+    <p>
+    <ul id ="golfer-list">
+    {% for golfer in golfers %}
+        <li id="golfer-{{ golfer.id }}" class="task" draggable="true" data-id="{{ golfer.id }}">
+            {{ golfer.name }}
+        </li>
+    {% empty %}
+        <li>No golfers found.</li>
+    {% endfor %}
+    </ul>
+    <script>
+        const golferList = document.getElementById('golfer-list');
+        const tasks = document.querySelectorAll('.task');
 
+        // Handle drag start
+        tasks.forEach(task => {
+            task.addEventListener('dragstart', (e) => {
+                e.target.classList.add('dragging');
+            });
+
+            task.addEventListener('dragend', (e) => {
+                e.target.classList.remove('dragging');
+            });
+        });
+
+        // Handle dragover (to allow dropping)
+        golferList.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Necessary to allow dropping
+            const draggingTask = document.querySelector('.dragging');
+            const afterElement = getDragAfterElement(golferList, e.clientY);
+            if (afterElement == null) {
+                golferList.appendChild(draggingTask);
+            } else {
+                golferList.insertBefore(draggingTask, afterElement);
+            }
+        });
+
+        // Get the element to place the dragged item after
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.task:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // Handle drop (reorder tasks on the UI)
+        golferList.addEventListener('drop', (e) => {
+            e.preventDefault();
+
+            const draggedTask = document.querySelector('.dragging');
+            const newOrder = getNewOrder();
+            
+            // Send the updated order to the server
+            updateGolferOrder(draggedTask.dataset.id, newOrder);
+        });
+
+        // Update golfer order on the server
+        function updateGolferOrder(golferId, newOrder) {
+            fetch('/update-golfer-order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',  // Ensure CSRF token is included
+                },
+                body: JSON.stringify({
+                    id: golferId,
+                    newOrder: newOrder,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Order updated successfully');
+                }
+            })
+            .catch(err => console.error('Error updating order:', err));
+        }
+
+        // Helper function to calculate the new order of golfers
+        function getNewOrder() {
+            const golfers = [...golferList.children];
+            return golfers.map(golfer => golfer.dataset.id);
+        }
+    </script>
+ 
+   
+    
+</body>
+</html>
